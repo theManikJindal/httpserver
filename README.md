@@ -4,7 +4,7 @@ Multi-Threaded File based HTTP Server
 Dependencies:
 -------------
 
-- JDK 8 or above
+- JDK 8
 - Maven 3.3 or above
 
 Building:
@@ -24,10 +24,10 @@ The server provides the following options:
 3. Root Directory `-r`: The root of the directory to serve. _(Note: `~/` does not work)_ 
 4. Thread Count `-t`: The number of threads to use to handle concurrent requests.
 
-### Sample Usage:
+#### Sample Usage:
 
-`cd {{project_root}}`
-`java -jar target\httpserver-1.0-jar-with-dependencies.jar -t 4 -p 7999 -b localhost -r C:/Users/themanikjindal/Desktop/`
+1. `cd {{project_root}}`
+2. `java -jar target\httpserver-1.0-jar-with-dependencies.jar -t 4 -p 7999 -b localhost -r C:/Users/themanikjindal/Desktop/`
 
 References:
 -----------
