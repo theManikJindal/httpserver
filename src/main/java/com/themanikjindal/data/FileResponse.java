@@ -10,24 +10,50 @@ import java.util.stream.Stream;
 
 public class FileResponse {
 
+    private static final String[] INDEX_FILES = {
+            "index.htm",
+            "index.html"
+    };
+
     private final File file;
     private final int statusCode;
 
-    public FileResponse(Optional<File> file) {
-        this.file = file.orElse(null);
+    public FileResponse(File file) {
 
-        if(this.file == null) {
+        if(file == null) {
             statusCode = 403;
-        } else {
-            if(this.file.exists()) {
-                if(this.file.isFile()) {
-                    statusCode = 200;
-                } else {
-                    statusCode = 400;
-                }
+            this.file = null;
+            return;
+        }
+
+        if(!file.exists()) {
+            statusCode = 404;
+            this.file = null;
+            return;
+        }
+
+        if(file.isFile()) {
+            statusCode = 200;
+            this.file = file;
+            return;
+        }
+
+        if (file.isDirectory()) {
+            Optional<File> indexFile = Stream.of(INDEX_FILES)
+                    .map(s -> file.toPath().resolve(s).toFile())
+                    .filter(file1 -> file1.exists() && file1.isFile())
+                    .findFirst();
+
+            if (indexFile.isPresent()) {
+                statusCode = 302;
+                this.file = indexFile.get();
             } else {
-                statusCode = 404;
+                statusCode = 400;
+                this.file = null;
             }
+        } else {
+            statusCode = 400;
+            this.file = null;
         }
     }
 
@@ -38,6 +64,11 @@ public class FileResponse {
                 "Content-Length: " + contentLength +
                 "\r\n" +
                 "\r\n";
+    }
+
+    private String get302(String location) {
+        return "HTTP/1.1 302 Found\r\n" +
+                "Location: " + location;
     }
 
     private String get400() {
@@ -83,5 +114,27 @@ public class FileResponse {
                 return responseBytes;
         }
         throw new IllegalStateException("Will never reach here");
+    }
+
+    public static byte[] getServerInfo() {
+        String serverInfo = "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html\r\n" +
+                "Content-Length: 310\r\n" +
+                "\r\n" +
+                "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "\t<title>HTTPServer</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "\t<h1><a href=\"https://github.com/theManikJindal/httpserver\">" +
+                "Multi-Threaded File based HTTP Server</a></h1>\n" +
+                "\t<p>This software is licensed under <strong>The MIT License (MIT) Copyright (c) 2016 theManikJindal" +
+                "</strong>.</p>\n" +
+                "\t\n" +
+                "</body>\n" +
+                "</html>";
+
+        return serverInfo.getBytes();
     }
 }

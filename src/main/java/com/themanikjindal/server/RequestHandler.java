@@ -23,9 +23,17 @@ public class RequestHandler implements Action1<SharedRef<Socket>> {
         try {
             Socket socket = socketSharedRef.get();
             Optional<String> requestUri = RequestURI.get(socket.getInputStream());
-            Optional<File> file = requestUri.flatMap(fileManager::getFile);
-            FileResponse fileResponse = new FileResponse(file);
-            socket.getOutputStream().write(fileResponse.getBytes());
+
+            byte[] responseBytes;
+            if (requestUri.isPresent() && requestUri.get().equals("/")) {
+                responseBytes = FileResponse.getServerInfo();
+            } else {
+                Optional<File> file = requestUri.flatMap(fileManager::getFile);
+                FileResponse fileResponse = new FileResponse(file.orElse(null));
+                responseBytes = fileResponse.getBytes();
+            }
+
+            socket.getOutputStream().write(responseBytes);
         } catch (IOException ignored) {
         } finally {
             socketSharedRef.deleteCopyNoThrow();
